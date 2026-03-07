@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "astrology-lab"
+version = "0.1.0"
+description = "Reproducible astrology research in Python using Swiss Ephemeris. Detection of aspects, transits, returns and structured pattern analysis."
+authors = ["André Carvalho <me@andrev.me>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pyswisseph = "^2.10.3.2"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.0.2"
+ruff = "^0.15.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
