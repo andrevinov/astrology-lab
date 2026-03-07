@@ -201,7 +201,7 @@ def test_calc_ecl_lon_ut_matches_direct_swiss_ephemeris_call():
 
     adapter_lon, adapter_speed = calc_ecl_lon_ut(jd, Body.SATURN, mode="swieph")
 
-    xx, _retflag = swe.calc_ut(jd, Body.SATURN, swe.FLG_SPEED | swe.FLG_SWIEPH)
+    xx, _retflag = swe.calc_ut(jd, swe.SATURN, swe.FLG_SPEED | swe.FLG_SWIEPH)
     direct_lon = float(xx[0])
     direct_speed = float(xx[3])
 

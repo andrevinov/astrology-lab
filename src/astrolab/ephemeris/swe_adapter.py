@@ -6,6 +6,21 @@ from typing import Literal, Tuple
 
 import swisseph as swe  # type: ignore
 
+from src.astrolab.domain.bodies import Body
+
+BODY_TO_SWE = {
+    Body.SUN: swe.SUN,
+    Body.MOON: swe.MOON,
+    Body.MERCURY: swe.MERCURY,
+    Body.VENUS: swe.VENUS,
+    Body.MARS: swe.MARS,
+    Body.JUPITER: swe.JUPITER,
+    Body.SATURN: swe.SATURN,
+    Body.URANUS: swe.URANUS,
+    Body.NEPTUNE: swe.NEPTUNE,
+    Body.PLUTO: swe.PLUTO,
+}
+
 EPHE_MODE = Literal["swieph", "moseph"]
 
 
@@ -56,7 +71,7 @@ def jd_ut_to_datetime(jd_ut: float) -> datetime:
     )
 
 
-def calc_ecl_lon_ut(jd_ut: float, body: int, mode: EPHE_MODE = "swieph") -> Tuple[float, float]:
+def calc_ecl_lon_ut(jd_ut: float, body: Body, mode: EPHE_MODE = "swieph") -> Tuple[float, float]:
     """
     Returns (longitude_degrees, speed_deg_per_day).
     Tropical zodiac by default (Swiss Ephemeris default).
@@ -67,7 +82,8 @@ def calc_ecl_lon_ut(jd_ut: float, body: int, mode: EPHE_MODE = "swieph") -> Tupl
     else:
         iflag |= swe.FLG_MOSEPH
 
-    xx, retflag = swe.calc_ut(jd_ut, body, iflag)
+    swe_body = BODY_TO_SWE[body]
+    xx, retflag = swe.calc_ut(jd_ut, swe_body, iflag)
     lon = float(xx[0])
     speed = float(xx[3])
     return lon, speed
