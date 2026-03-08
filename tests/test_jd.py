@@ -7,20 +7,19 @@
 # - enforcing UTC-aware datetimes
 # - rejecting naive datetimes
 # - making UTC explicit through a small wrapper
+# - defining reusable UTC search windows for scanners and event search
 #
-# At this stage, Julian Day conversion itself is intentionally not implemented
-# in this module, because that responsibility belongs to the ephemeris layer.
-# So we also test that the placeholder functions fail in the expected way.
+# At this stage, Julian Day conversion itself does not belong here.
+# That responsibility lives in the ephemeris layer.
 
 from datetime import datetime, timedelta, timezone
 
 import pytest
 
 from src.astrolab.core.time.jd import (
+    SearchWindow,
     UTCDateTime,
-    datetime_to_jd_ut,
     ensure_utc,
-    jd_ut_to_datetime,
 )
 
 
@@ -118,27 +117,51 @@ def test_ensure_utc_converts_other_timezone_to_utc():
 
 
 # ==========================================================
-# Placeholder conversion functions
+# SearchWindow
 # ==========================================================
 
-def test_datetime_to_jd_ut_raises_not_implemented():
+def test_searchwindow_accepts_valid_utc_range():
     """
-    datetime_to_jd_ut is intentionally not implemented in core/time/jd.py.
-
-    This test protects the architectural decision that Julian Day conversion
-    belongs to the ephemeris layer, not the pure core time layer.
+    SearchWindow should accept two aware UTC datetimes
+    when start_utc < end_utc.
     """
-    dt = datetime(2026, 2, 1, 12, 0, 0, tzinfo=timezone.utc)
+    start = datetime(2026, 2, 1, 0, 0, 0, tzinfo=timezone.utc)
+    end = datetime(2026, 2, 2, 0, 0, 0, tzinfo=timezone.utc)
 
-    with pytest.raises(NotImplementedError, match="Use ephemeris"):
-        datetime_to_jd_ut(dt)
+    window = SearchWindow(start_utc=start, end_utc=end)
+
+    assert window.start_utc == start
+    assert window.end_utc == end
 
 
-def test_jd_ut_to_datetime_raises_not_implemented():
+def test_searchwindow_rejects_naive_datetimes():
     """
-    jd_ut_to_datetime is also intentionally left unimplemented here.
-
-    The goal is to keep this module free from Swiss Ephemeris dependencies.
+    SearchWindow must reject naive datetimes.
     """
-    with pytest.raises(NotImplementedError, match="Use ephemeris"):
-        jd_ut_to_datetime(2460000.5)
+    start = datetime(2026, 2, 1, 0, 0, 0)
+    end = datetime(2026, 2, 2, 0, 0, 0, tzinfo=timezone.utc)
+
+    with pytest.raises(ValueError, match="aware datetimes"):
+        SearchWindow(start_utc=start, end_utc=end)
+
+
+def test_searchwindow_rejects_non_utc_timezone():
+    """
+    SearchWindow must reject aware datetimes that are not timezone.utc.
+    """
+    utc_plus_3 = timezone(timedelta(hours=3))
+    start = datetime(2026, 2, 1, 0, 0, 0, tzinfo=utc_plus_3)
+    end = datetime(2026, 2, 2, 0, 0, 0, tzinfo=timezone.utc)
+
+    with pytest.raises(ValueError, match="timezone.utc"):
+        SearchWindow(start_utc=start, end_utc=end)
+
+
+def test_searchwindow_requires_start_before_end():
+    """
+    SearchWindow requires start_utc < end_utc.
+    """
+    t = datetime(2026, 2, 1, 0, 0, 0, tzinfo=timezone.utc)
+
+    with pytest.raises(ValueError, match="start_utc < end_utc"):
+        SearchWindow(start_utc=t, end_utc=t)

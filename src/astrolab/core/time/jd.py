@@ -19,24 +19,27 @@ class UTCDateTime:
             raise ValueError("UTCDateTime requires timezone.utc.")
 
 
+@dataclass(frozen=True)
+class SearchWindow:
+    """
+    Generic UTC time window used by scanners and event search use cases.
+    """
+    start_utc: datetime
+    end_utc: datetime
+
+    def __post_init__(self) -> None:
+        if self.start_utc.tzinfo is None or self.end_utc.tzinfo is None:
+            raise ValueError("SearchWindow requires aware datetimes.")
+        if self.start_utc.tzinfo != timezone.utc or self.end_utc.tzinfo != timezone.utc:
+            raise ValueError("SearchWindow requires timezone.utc datetimes.")
+        if not (self.start_utc < self.end_utc):
+            raise ValueError("SearchWindow requires start_utc < end_utc.")
+
+
 def ensure_utc(dt: datetime) -> UTCDateTime:
+    """
+    Normalize an aware datetime to timezone.utc and wrap it explicitly.
+    """
     if dt.tzinfo is None:
         raise ValueError("Datetime must be timezone-aware.")
     return UTCDateTime(dt.astimezone(timezone.utc))
-
-
-def datetime_to_jd_ut(dt_utc: datetime) -> float:
-    """
-    Convert aware UTC datetime to Julian Day (UT).
-    Implemented via Swiss Ephemeris in ephemeris layer; here we keep it pure/simple.
-    This function is intentionally NOT implemented here to avoid importing swe in core.
-    """
-    raise NotImplementedError("Use ephemeris.swe_adapter.datetime_to_jd_ut()")
-
-
-def jd_ut_to_datetime(jd_ut: float) -> datetime:
-    """
-    Convert JD(UT) -> aware UTC datetime.
-    Implemented via Swiss Ephemeris in ephemeris layer; here we keep it pure/simple.
-    """
-    raise NotImplementedError("Use ephemeris.swe_adapter.jd_ut_to_datetime()")
