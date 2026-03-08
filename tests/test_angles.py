@@ -5,12 +5,16 @@
 # Why are these tests important?
 # Astrology calculations operate on a circular system (0° == 360°).
 # If circular arithmetic fails here, every higher-level concept
-# (conjunctions, oppositions, quadratures, ingresses) will be wrong.
+# (conjunctions, oppositions, quadratures, ingresses, orbs, clustering)
+# will be wrong.
 #
 # These tests validate:
 # - Angle normalization
 # - Circular shortest angular distance
 # - Sign conventions
+# - Absolute angular distance
+# - Orb checks
+# - Circular clustering / span behavior
 # - Edge cases (0°, 180°, wrap-around)
 # - Immutability of result structures
 
@@ -18,8 +22,14 @@ import pytest
 
 from src.astrolab.core.math.angles import (
     RootResult,
+    all_pairwise_within_orb,
+    angular_distance_deg,
+    circular_span_deg,
+    fits_within_circular_window,
+    is_within_orb,
     norm360,
     shortest_signed_delta_deg,
+    signed_distance_to_exact_angle,
     signed_distance_to_zero,
 )
 
@@ -103,14 +113,14 @@ def test_shortest_signed_delta_wraparound_across_zero():
 
 def test_shortest_signed_delta_returns_in_minus180_to_180_interval():
     """
-    The function guarantees results in (-180, 180].
+    The function guarantees results in [-180, 180).
 
     180° is a degenerate case:
     both +180 and -180 are valid minimal distances.
-    By convention, this implementation returns +180.
+    By convention, this implementation returns -180.
     """
-    assert shortest_signed_delta_deg(0.0, 180.0) == 180.0
-    assert shortest_signed_delta_deg(180.0, 0.0) == 180.0
+    assert shortest_signed_delta_deg(0.0, 180.0) == -180.0
+    assert shortest_signed_delta_deg(180.0, 0.0) == -180.0
 
 
 def test_shortest_signed_delta_antisymmetry_property():
@@ -129,8 +139,61 @@ def test_shortest_signed_delta_antisymmetry_property():
 
     # Degenerate case (180°)
     a2, b2 = 0.0, 180.0
-    assert shortest_signed_delta_deg(a2, b2) == 180.0
-    assert shortest_signed_delta_deg(b2, a2) == 180.0
+    assert shortest_signed_delta_deg(a2, b2) == -180.0
+    assert shortest_signed_delta_deg(b2, a2) == -180.0
+
+
+# ==========================================================
+# angular_distance_deg
+# ==========================================================
+
+def test_angular_distance_deg_basic_and_wraparound_cases():
+    """
+    angular_distance_deg returns the absolute shortest distance
+    between two angles on the circle.
+    """
+    assert angular_distance_deg(10.0, 20.0) == 10.0
+    assert angular_distance_deg(20.0, 10.0) == 10.0
+    assert angular_distance_deg(359.0, 1.0) == 2.0
+    assert angular_distance_deg(1.0, 359.0) == 2.0
+    assert angular_distance_deg(0.0, 180.0) == 180.0
+
+
+# ==========================================================
+# is_within_orb
+# ==========================================================
+
+def test_is_within_orb_basic_and_wraparound_cases():
+    """
+    is_within_orb should work both in regular and wrap-around scenarios.
+    """
+    assert is_within_orb(10.0, 12.0, 2.0) is True
+    assert is_within_orb(10.0, 13.0, 2.0) is False
+    assert is_within_orb(359.0, 1.0, 2.0) is True
+    assert is_within_orb(359.0, 1.0, 1.5) is False
+
+
+def test_is_within_orb_rejects_negative_orb():
+    """
+    Orb must be non-negative.
+    """
+    with pytest.raises(ValueError, match="orb_deg must be >= 0."):
+        is_within_orb(10.0, 12.0, -1.0)
+
+
+# ==========================================================
+# signed_distance_to_exact_angle
+# ==========================================================
+
+def test_signed_distance_to_exact_angle_basic_examples():
+    """
+    signed_distance_to_exact_angle(x, target) measures
+    the shortest signed angular distance to the target angle.
+    """
+    assert signed_distance_to_exact_angle(359.0, 0.0) == 1.0
+    assert signed_distance_to_exact_angle(1.0, 0.0) == -1.0
+    assert signed_distance_to_exact_angle(10.0, 20.0) == 10.0
+    assert signed_distance_to_exact_angle(20.0, 10.0) == -10.0
 
 
 # ==========================================================
@@ -166,9 +229,80 @@ def test_signed_distance_to_zero_quadrant_examples():
 def test_signed_distance_to_zero_180_degrees():
     """
     180° is the degenerate midpoint on the circle.
-    By convention, we expect +180.
+    By convention, we expect -180.
     """
-    assert signed_distance_to_zero(180.0) == 180.0
+    assert signed_distance_to_zero(180.0) == -180.0
+
+
+# ==========================================================
+# all_pairwise_within_orb
+# ==========================================================
+
+def test_all_pairwise_within_orb_for_two_and_three_angles():
+    """
+    all_pairwise_within_orb should require every pair
+    in the set to satisfy the orb constraint.
+    """
+    assert all_pairwise_within_orb([10.0, 11.5], 2.0) is True
+    assert all_pairwise_within_orb([359.0, 0.5, 1.0], 2.0) is True
+    assert all_pairwise_within_orb([359.0, 1.0, 4.5], 2.0) is False
+
+
+def test_all_pairwise_within_orb_rejects_invalid_inputs():
+    """
+    The function requires at least two angles and a non-negative orb.
+    """
+    with pytest.raises(ValueError, match="angles must contain at least 2 values."):
+        all_pairwise_within_orb([10.0], 2.0)
+
+    with pytest.raises(ValueError, match="orb_deg must be >= 0."):
+        all_pairwise_within_orb([10.0, 12.0], -1.0)
+
+
+# ==========================================================
+# circular_span_deg
+# ==========================================================
+
+def test_circular_span_deg_basic_and_wraparound_clusters():
+    """
+    circular_span_deg returns the minimal circular span
+    that contains all given angles.
+    """
+    assert circular_span_deg([42.0]) == 0.0
+    assert circular_span_deg([10.0, 20.0, 30.0]) == 20.0
+    assert circular_span_deg([359.0, 0.0, 1.0]) == 2.0
+    assert circular_span_deg([350.0, 10.0]) == 20.0
+
+
+def test_circular_span_deg_rejects_empty_input():
+    """
+    The function requires at least one angle.
+    """
+    with pytest.raises(ValueError, match="angles must not be empty."):
+        circular_span_deg([])
+
+
+# ==========================================================
+# fits_within_circular_window
+# ==========================================================
+
+def test_fits_within_circular_window_basic_examples():
+    """
+    fits_within_circular_window should return True when all angles
+    fit inside a minimal circular span smaller than or equal to the window.
+    """
+    assert fits_within_circular_window([359.0, 0.0, 1.0], 2.0) is True
+    assert fits_within_circular_window([359.0, 0.0, 1.0], 1.5) is False
+    assert fits_within_circular_window([10.0, 20.0, 30.0], 20.0) is True
+    assert fits_within_circular_window([10.0, 20.0, 30.0], 19.9) is False
+
+
+def test_fits_within_circular_window_rejects_negative_window():
+    """
+    Window size must be non-negative.
+    """
+    with pytest.raises(ValueError, match="window_deg must be >= 0."):
+        fits_within_circular_window([10.0, 20.0], -1.0)
 
 
 # ==========================================================
