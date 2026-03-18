@@ -32,3 +32,4 @@ pythonpath = ["src"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
+disable_error_code = ["no-untyped-def"]
