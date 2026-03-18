@@ -1,0 +1,25 @@
+# ruff.toml
+
+line-length = 100
+target-version = "py312"
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort (imports)
+]
+
+ignore = [
+    "E501",  # line too long (vamos deixar flexível)
+]
+
+[lint.per-file-ignores]
+# testes podem ser mais relaxados
+"tests/*" = [
+    "S101",  # assert
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"
