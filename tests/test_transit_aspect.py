@@ -7,9 +7,9 @@ import pytest
 from src.astrolab.core.time.jd import UTCDateTime
 from src.astrolab.domain.aspects import Aspect
 from src.astrolab.domain.bodies import Body
+from src.astrolab.domain.patterns.transit_aspect import TransitAspect, detect_transit_aspects
 from src.astrolab.domain.positions import Position
 from src.astrolab.domain.snapshots import Snapshot
-from src.astrolab.patterns.transit_aspect import TransitAspect, detect_transit_aspects
 
 TEST_TIMESTAMP = UTCDateTime(datetime(2026, 2, 20, 16, 13, tzinfo=timezone.utc))
 
