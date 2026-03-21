@@ -1,6 +1,6 @@
 # tests/test_bodies.py
 
-from src.astrolab.domain.bodies import Body
+from astrolab.domain.bodies import Body
 
 
 def test_body_enum_contains_expected_members():

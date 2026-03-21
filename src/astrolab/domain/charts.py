@@ -5,9 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
-from src.astrolab.domain.bodies import Body
-from src.astrolab.domain.positions import Position
-from src.astrolab.domain.snapshots import Snapshot
+from astrolab.domain.bodies import Body
+from astrolab.domain.positions import Position
+from astrolab.domain.snapshots import Snapshot
 
 
 @dataclass(frozen=True)

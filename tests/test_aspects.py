@@ -11,7 +11,7 @@
 
 import pytest
 
-from src.astrolab.domain.aspects import Aspect, angular_separation, detect_aspect
+from astrolab.domain.aspects import Aspect, angular_separation, detect_aspect
 
 # ==========================================================
 # angular_separation

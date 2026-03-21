@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-from src.astrolab.core.math.angles import norm360
+from astrolab.core.math.angles import norm360
 
 
 class Aspect(Enum):

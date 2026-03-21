@@ -16,7 +16,7 @@ from typing import Dict, Iterable, Literal, Tuple
 
 import swisseph as swe  # type: ignore
 
-from src.astrolab.domain.bodies import Body
+from astrolab.domain.bodies import Body
 
 EPHE_MODE = Literal["swieph", "moseph"]
 RawBodyPosition = Tuple[float, float]

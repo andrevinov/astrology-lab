@@ -3,8 +3,8 @@ from datetime import datetime, timezone
 import pytest
 import swisseph as swe  # type: ignore
 
-from src.astrolab.domain.bodies import Body
-from src.astrolab.ephemeris.swe_adapter import (
+from astrolab.domain.bodies import Body
+from astrolab.ephemeris.swe_adapter import (
     calc_body_positions_for_datetime,
     calc_body_positions_ut,
     calc_ecl_lon_ut,

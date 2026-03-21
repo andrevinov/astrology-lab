@@ -1,7 +1,7 @@
 import math
 
-from src.astrolab.domain.bodies import Body
-from src.astrolab.domain.patterns.midpoints import (
+from astrolab.domain.bodies import Body
+from astrolab.domain.patterns.midpoints import (
     build_midpoint,
     midpoint_longitude,
 )

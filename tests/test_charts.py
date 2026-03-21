@@ -13,10 +13,10 @@
 from datetime import datetime, timezone
 
 from astrolab.core.time.utc_types import UTCDateTime
-from src.astrolab.domain.bodies import Body
-from src.astrolab.domain.charts import Chart
-from src.astrolab.domain.positions import Position
-from src.astrolab.domain.snapshots import Snapshot
+from astrolab.domain.bodies import Body
+from astrolab.domain.charts import Chart
+from astrolab.domain.positions import Position
+from astrolab.domain.snapshots import Snapshot
 
 
 def make_snapshot() -> Snapshot:

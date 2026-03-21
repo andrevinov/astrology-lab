@@ -20,7 +20,7 @@
 
 import pytest
 
-from src.astrolab.core.math.angles import (
+from astrolab.core.math.angles import (
     RootResult,
     all_pairwise_within_orb,
     angular_distance_deg,

@@ -3,10 +3,10 @@ from datetime import datetime, timezone
 import pytest
 
 from astrolab.core.time.utc_types import UTCDateTime
-from src.astrolab.domain.bodies import Body
-from src.astrolab.domain.patterns.returns import ReturnEvent, detect_return
-from src.astrolab.domain.positions import Position
-from src.astrolab.domain.snapshots import Snapshot
+from astrolab.domain.bodies import Body
+from astrolab.domain.patterns.returns import ReturnEvent, detect_return
+from astrolab.domain.positions import Position
+from astrolab.domain.snapshots import Snapshot
 
 TEST_TIMESTAMP = UTCDateTime(datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc))
 

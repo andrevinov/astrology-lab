@@ -2,8 +2,8 @@
 
 import pytest
 
-from src.astrolab.domain.bodies import Body
-from src.astrolab.domain.positions import Position
+from astrolab.domain.bodies import Body
+from astrolab.domain.positions import Position
 
 
 def test_position_stores_body_longitude_and_speed():

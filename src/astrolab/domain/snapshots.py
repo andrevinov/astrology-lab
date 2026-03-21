@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from typing import Dict, Iterable, Mapping
 
 from astrolab.core.time.utc_types import UTCDateTime
-from src.astrolab.domain.bodies import Body
-from src.astrolab.domain.positions import Position
+from astrolab.domain.bodies import Body
+from astrolab.domain.positions import Position
 
 
 @dataclass(frozen=True)

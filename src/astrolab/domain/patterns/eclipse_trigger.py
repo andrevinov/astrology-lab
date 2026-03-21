@@ -3,42 +3,45 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable
 
+from astrolab.core.math.angles import norm360
 from astrolab.domain.aspects import Aspect, angular_separation
 from astrolab.domain.bodies import Body
 from astrolab.domain.snapshots import Snapshot
 
 
 @dataclass(frozen=True)
-class TransitAspect:
+class EclipseTriggerEvent:
     """
-    A detected aspect between a transit position and a natal position.
+    A detected transit activation of a previously known eclipse degree.
 
     Example:
-    - transit Saturn square natal Moon
-    - transit Mars conjunct natal Sun
+    - transit Mars conjunct eclipse degree at 15 Aries
+    - transit Saturn square eclipse degree at 22 Libra
     """
 
     transit_body: Body
-    natal_body: Body
+    eclipse_longitude: float
     aspect: Aspect
     separation_deg: float
     orb_deg: float
 
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "eclipse_longitude", norm360(self.eclipse_longitude))
 
-def detect_transit_aspects(
-    natal_snapshot: Snapshot,
+
+def detect_eclipse_triggers(
     transit_snapshot: Snapshot,
+    eclipse_longitude: float,
     orb_deg: float,
     *,
-    natal_bodies: Iterable[Body] | None = None,
     transit_bodies: Iterable[Body] | None = None,
     allowed_aspects: Iterable[Aspect] | None = None,
-) -> tuple[TransitAspect, ...]:
+) -> tuple[EclipseTriggerEvent, ...]:
     """
-    Detect transit-to-natal major aspects between two snapshots.
+    Detect transit activations of a known eclipse degree.
 
     Rules:
-    - compares every selected transit body against every selected natal body
+    - compares each selected transit body against the eclipse longitude
     - uses a single global orb
     - if multiple aspects are possible, returns the closest exact match
     - output is sorted for deterministic results
@@ -46,46 +49,40 @@ def detect_transit_aspects(
     if orb_deg < 0.0:
         raise ValueError("orb_deg must be non-negative")
 
-    selected_natal_bodies = _resolve_bodies(
-        requested=natal_bodies,
-        available=natal_snapshot.bodies,
-    )
+    normalized_eclipse_longitude = norm360(eclipse_longitude)
     selected_transit_bodies = _resolve_bodies(
         requested=transit_bodies,
         available=transit_snapshot.bodies,
     )
     selected_aspects = _resolve_aspects(allowed_aspects)
 
-    hits: list[TransitAspect] = []
+    hits: list[EclipseTriggerEvent] = []
 
     for transit_body in selected_transit_bodies:
         transit_position = transit_snapshot.position_of(transit_body)
 
-        for natal_body in selected_natal_bodies:
-            natal_position = natal_snapshot.position_of(natal_body)
+        separation_deg = angular_separation(
+            transit_position.longitude,
+            normalized_eclipse_longitude,
+        )
 
-            separation_deg = angular_separation(
-                transit_position.longitude,
-                natal_position.longitude,
-            )
+        aspect = _detect_allowed_aspect(
+            separation_deg=separation_deg,
+            orb_deg=orb_deg,
+            allowed_aspects=selected_aspects,
+        )
+        if aspect is None:
+            continue
 
-            aspect = _detect_allowed_aspect(
+        hits.append(
+            EclipseTriggerEvent(
+                transit_body=transit_body,
+                eclipse_longitude=normalized_eclipse_longitude,
+                aspect=aspect,
                 separation_deg=separation_deg,
-                orb_deg=orb_deg,
-                allowed_aspects=selected_aspects,
+                orb_deg=abs(separation_deg - aspect.angle),
             )
-            if aspect is None:
-                continue
-
-            hits.append(
-                TransitAspect(
-                    transit_body=transit_body,
-                    natal_body=natal_body,
-                    aspect=aspect,
-                    separation_deg=separation_deg,
-                    orb_deg=abs(separation_deg - aspect.angle),
-                )
-            )
+        )
 
     return tuple(sorted(hits, key=_sort_key))
 
@@ -139,10 +136,9 @@ def _detect_allowed_aspect(
     return best_match
 
 
-def _sort_key(hit: TransitAspect) -> tuple[float, str, str, float]:
+def _sort_key(hit: EclipseTriggerEvent) -> tuple[float, str, float]:
     return (
         hit.orb_deg,
         hit.transit_body.value,
-        hit.natal_body.value,
         hit.aspect.angle,
     )

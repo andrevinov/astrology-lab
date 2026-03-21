@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from src.astrolab.core.math.angles import norm360
-from src.astrolab.domain.bodies import Body
+from astrolab.core.math.angles import norm360
+from astrolab.domain.bodies import Body
 
 
 @dataclass(frozen=True)

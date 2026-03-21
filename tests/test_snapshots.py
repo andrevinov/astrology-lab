@@ -5,9 +5,9 @@ from datetime import datetime, timezone
 import pytest
 
 from astrolab.core.time.utc_types import UTCDateTime
-from src.astrolab.domain.bodies import Body
-from src.astrolab.domain.positions import Position
-from src.astrolab.domain.snapshots import Snapshot
+from astrolab.domain.bodies import Body
+from astrolab.domain.positions import Position
+from astrolab.domain.snapshots import Snapshot
 
 
 def test_snapshot_from_positions_builds_mapping_and_allows_lookup() -> None:
