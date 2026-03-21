@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Iterator
 
-from astrolab.core.time.jd import ensure_utc
+from astrolab.core.time.utc_types import ensure_utc
 
 
 def iter_datetimes(

@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from src.astrolab.core.time.jd import UTCDateTime
+from astrolab.core.time.utc_types import UTCDateTime
 from src.astrolab.domain.bodies import Body
 from src.astrolab.domain.patterns.returns import ReturnEvent, detect_return
 from src.astrolab.domain.positions import Position

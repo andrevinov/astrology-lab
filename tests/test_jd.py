@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from src.astrolab.core.time.jd import (
+from astrolab.core.time.utc_types import (
     SearchWindow,
     UTCDateTime,
     ensure_utc,
